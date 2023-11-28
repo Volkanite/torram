@@ -234,12 +234,13 @@ def guess_file(file_info, file_idx, files, pieces, piece_length, files_sizes_arr
 
         add_incomplete_file_with_different_size(destination_path, files[file_length])
 
-        if args.autoskip and len(files[file_length]) < 2 and \
-                max(file.startswith(destination_path) for file in files[file_length]):
+        if len(files[file_length]) < 2:
             print("Only one file found. Thus, skipping...")
             return
 
         uniq_filenames = remove_hard_links(files[file_length])
+
+        last_file_num_good_chunks = 0
 
         for file_number, file in enumerate(files[file_length]):
             file_info = FileInfo()
@@ -282,6 +283,13 @@ def guess_file(file_info, file_idx, files, pieces, piece_length, files_sizes_arr
                 color_code, result_message = get_similatity_rate_and_color(num_of_successes, num_of_checks)
                 pattern = ' [{0} of {1}] ({2})'
                 print(fmt.format(pattern.format(num_of_successes, num_of_checks, result_message), color_code))
+
+                if last_file_num_good_chunks == num_of_successes:
+                    print("Same amount of pieces. Thus, skipping...")
+                    return
+
+                last_file_num_good_chunks = num_of_successes
+
             else:
                 sys.stdout.write(fmt.format(number_to_show, 'BLACK0', 'BOLD') + str(file) + " hardlink -> skipped\n")
 
@@ -289,7 +297,8 @@ def guess_file(file_info, file_idx, files, pieces, piece_length, files_sizes_arr
         while True:
             user_input = ''
             if args.autoskip < 2 and not (suggestion == 'S' and args.autoskip > 0):
-                user_input = input(fmt.format('Choose file number or [S]kip/co[M]bine/[A]uto [<N>/S/M/A] ({0}) '.format(suggestion), 'INVERT'))
+                #user_input = input(fmt.format('Choose file number or [S]kip/co[M]bine/[A]uto [<N>/S/M/A] ({0}) '.format(suggestion), 'INVERT'))
+                user_input = 'M'
 
             if user_input == '':
                 user_input = suggestion
